@@ -8,9 +8,14 @@
 #include "quadtree.h"
 #include <Imagine/Graphics.h>
 #include <Imagine/Images.h>
+#include "image_quadtrees.h"
 
 using namespace std;
 using namespace Imagine;
+
+QuadTree<byte>* test_function2(Image<byte> Img){
+    return new QuadLeaf<byte>(Img[0,0]);
+}
 
 int main() {
 
@@ -27,6 +32,14 @@ int main() {
     I1[I1.width()/2,I1.height()-2]=0;
     Window W1 = openWindow(I1.width(), I1.height());
     display(I1);
+
+    // Tests on the functions introduced
+    QuadTree<byte>* test = imgToQTree(I1);
+    //cout<<test->son(0)->value()<<endl;
+    delete test;
+    QuadTree<byte>* test2 = test_function2(I1);
+    delete test2;
+
 
     //Tests on the quadtree structure
     // Leaf and node creation
