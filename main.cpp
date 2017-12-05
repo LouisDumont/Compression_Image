@@ -31,14 +31,16 @@ int main() {
     }
     I1[I1.width()/2,I1.height()-2]=0;
     Window W1 = openWindow(I1.width(), I1.height());
-    display(I1);
+    //display(I1);
 
     // Tests on the functions introduced
     QuadTree<byte>* test = imgToQTree(I1);
-    //cout<<test->son(0)->value()<<endl;
+    cout<<"taille "<<getSize(test)<<endl;
+    Image<byte> I2 = qTreeToImg(test);
+    cout<<I2.height()<<endl;
+    cout<<I2.width()<<endl;
+    display(I2);
     delete test;
-    QuadTree<byte>* test2 = test_function2(I1);
-    delete test2;
 
 
     //Tests on the quadtree structure
