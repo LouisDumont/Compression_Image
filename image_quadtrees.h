@@ -20,4 +20,5 @@ int getSize(QuadTree<byte>* tree);
 
 Imagine::Image<byte> qTreeToImg(QuadTree<byte>* tree);
 
-void tabFilling(QuadTree<byte>* tree, byte* tab, int size);
+void tabFilling
+        (QuadTree<byte>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size);

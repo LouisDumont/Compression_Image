@@ -13,6 +13,8 @@
 using namespace std;
 using namespace Imagine;
 
+
+
 /*------------------------------------------------------------*
  * Compressing an image into a QuadTree
  *------------------------------------------------------------*/
@@ -22,6 +24,7 @@ QuadTree<byte>* imgToQTree(Image<byte> Img){
     //Getting the Image dimensions
     int height = Img.height();
     int width  = Img.width();
+
     //Calling the recursive function on the right region
     return QTreeBuilding(Img, 0, height-1, 0, width-1, 1);
 }
@@ -32,8 +35,10 @@ QuadTree<byte>* QTreeBuilding
 
     //Case of a single pixel
     if ((xMin==xMax) && (yMin==yMax)) {
-        //cout<<"pixel"<<endl;
-        return new QuadLeaf<byte>(Img[xMin, yMin]);
+        byte val = Img[xMin,yMin];
+        cout<<xMin<<"  "<<yMin<<endl;
+        cout<<int(val)<<endl;
+        return new QuadLeaf<byte>(val);
     }
     //cout<<prof<<endl;
 
@@ -45,17 +50,18 @@ QuadTree<byte>* QTreeBuilding
     QuadTree<byte>* sonNE =  QTreeBuilding(Img, xMin, xMid, yMid+1, yMax, prof+1);
     QuadTree<byte>* sonSW =  QTreeBuilding(Img, xMid+1, xMax, yMin, yMid, prof+1);
     QuadTree<byte>* sonSE =  QTreeBuilding(Img, xMid+1, xMax, yMid+1, yMax, prof+1);
-    bool condNorth = ((sonNW->isLeaf() && sonNE->isLeaf()) && (sonNW->value() == sonNE->value()));
-    bool condSouth = ((sonSW->isLeaf() && sonSE->isLeaf()) && (sonSW->value() == sonSE->value()));
-    if ((condNorth && condSouth) && (sonNE->value() == sonSE->value())) {
-        byte value = sonNW->value();
-        delete sonNW;
-        delete sonNE;
-        delete sonSE;
-        delete sonSW;
-        //cout<<"fusion"<<endl;
-        return new QuadLeaf<byte>(value);
-    }
+    //bool condNorth = ((sonNW->isLeaf() && sonNE->isLeaf()) && (sonNW->value() == sonNE->value()));
+    //bool condSouth = ((sonSW->isLeaf() && sonSE->isLeaf()) && (sonSW->value() == sonSE->value()));
+    //if ((condNorth && condSouth) && (sonNE->value() == sonSE->value())) {
+    //    byte value = sonNW->value();
+    //    delete sonNW;
+    //    delete sonNE;
+    //    delete sonSE;
+    //    delete sonSW;
+    //    cout<<"fusion"<<endl;
+    //    return new QuadLeaf<byte>(value);
+    //}
+    //cout<<"node"<<endl;
     return new QuadNode<byte>(sonNW, sonNE, sonSE, sonSW);
 }
 
@@ -75,15 +81,33 @@ int getSize(QuadTree<byte>* tree){
 
 Image<byte> qTreeToImg(QuadTree<byte>* tree){
     int size = getSize(tree);
-    byte* tab = new byte [size*size];
-    tabFilling(tree, tab, size);
-    Image<byte> I1(tab,512);
+    byte* tab = new byte[size*size];
+    tabFilling(tree, tab, 0, size-1, 0, size-1, size);
+    Image<byte> Ires(tab,size,size);
     delete [] tab;
-    return I1;
+    //display(I1);
+    return Ires;
 }
 
-void tabFilling(QuadTree<byte>* tree, byte* tab, int size){
-    for(int i=0; i<size; i++){
-        tab[i]=1;
+void tabFilling(QuadTree<byte>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size){
+
+    if (tree->isLeaf()){
+        byte val = tree->value();
+        for (int i=xMin; i<=xMax; i++){
+            for (int j=yMin; j<=yMax; j++){
+                tab[i*size+j]=val;
+            }
+        }
+        return;
     }
+    QuadTree<byte>* sonNW = tree->son(0);
+    QuadTree<byte>* sonNE = tree->son(1);
+    QuadTree<byte>* sonSE = tree->son(2);
+    QuadTree<byte>* sonSW = tree->son(3);
+    int xMid = (xMin + xMax) / 2;
+    int yMid = (yMin + yMax) / 2;
+    tabFilling(sonNW, tab, xMin, xMid, yMin, yMid, size);
+    tabFilling(sonNE, tab, xMin, xMid, yMid+1, yMax, size);
+    tabFilling(sonSW, tab, xMid+1, xMax, yMin, yMid, size);
+    tabFilling(sonSE, tab, xMid+1, xMax, yMid+1, yMax, size);
 }
