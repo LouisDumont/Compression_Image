@@ -26,18 +26,19 @@ QuadTree<byte>* imgToQTree(Image<byte> Img){
     int width  = Img.width();
 
     //Calling the recursive function on the right region
-    return QTreeBuilding(Img, 0, height-1, 0, width-1, 1);
+    QuadTree<byte>* res = QTreeBuilding(Img, 0,height-1, 0, width-1);
+    return res;
 }
 
 // Recursive function building the QuadTree of a region of the image
 QuadTree<byte>* QTreeBuilding
-        (Image<byte> Img, int xMin, int xMax, int yMin, int yMax, int prof){
+        (Image<byte> Img, int xMin, int xMax, int yMin, int yMax){
 
     //Case of a single pixel
     if ((xMin==xMax) && (yMin==yMax)) {
         byte val = Img[xMin,yMin];
-        cout<<xMin<<"  "<<yMin<<endl;
-        cout<<int(val)<<endl;
+        //cout<<xMin<<"  "<<yMin<<endl;
+        //cout<<int(val)<<endl;
         return new QuadLeaf<byte>(val);
     }
     //cout<<prof<<endl;
@@ -46,10 +47,10 @@ QuadTree<byte>* QTreeBuilding
     int xMid = (xMin + xMax) / 2;
     int yMid = (yMin + yMax) / 2;
     //Calculating the sub_trees
-    QuadTree<byte>* sonNW =  QTreeBuilding(Img, xMin, xMid, yMin, yMid, prof+1);
-    QuadTree<byte>* sonNE =  QTreeBuilding(Img, xMin, xMid, yMid+1, yMax, prof+1);
-    QuadTree<byte>* sonSW =  QTreeBuilding(Img, xMid+1, xMax, yMin, yMid, prof+1);
-    QuadTree<byte>* sonSE =  QTreeBuilding(Img, xMid+1, xMax, yMid+1, yMax, prof+1);
+    QuadTree<byte>* sonNW =  QTreeBuilding(Img, xMin, xMid, yMin, yMid);
+    QuadTree<byte>* sonNE =  QTreeBuilding(Img, xMin, xMid, yMid+1, yMax);
+    QuadTree<byte>* sonSW =  QTreeBuilding(Img, xMid+1, xMax, yMin, yMid);
+    QuadTree<byte>* sonSE =  QTreeBuilding(Img, xMid+1, xMax, yMid+1, yMax);
     //bool condNorth = ((sonNW->isLeaf() && sonNE->isLeaf()) && (sonNW->value() == sonNE->value()));
     //bool condSouth = ((sonSW->isLeaf() && sonSE->isLeaf()) && (sonSW->value() == sonSE->value()));
     //if ((condNorth && condSouth) && (sonNE->value() == sonSE->value())) {
