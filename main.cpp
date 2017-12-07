@@ -67,14 +67,12 @@ int getSize(QuadTree<int>* tree){
     return max(max(2*s0,2*s1),max(2*s2,2*s3));
 }
 
-// NE FONCTIONNE PAS CAR LE CONSTRUCTEUR DE IMAGINE++ NE MARCHE PAS COMME PREVU
+
 Image<byte> qTreeToImg(QuadTree<int>* tree){
     int size = getSize(tree);
     byte* tab = new byte[size*size];
-
     fillTab(tree,tab, 0, size-1, 0, size-1, size);
-    Image<byte> res(tab,size,size);
-    delete [] tab;
+    Image<byte> res(tab,size,size, true);
     return res;
 }
 
@@ -96,38 +94,17 @@ int main() {
         cout << "Probleme dans le chargement d'images" << endl;
         return 1;
     }
-    cout<<"pixel blanc "<<int(I1[0,0])<<endl;
-    for (int i=0;i<I1.width();i++){
-        for (int j=0; j<I1.width(); j++){
-            int val=int(I1[i*I1.width()+j]);
-            if (val != 255){cout<<i<<" "<<j<<" "<<val<<endl;}
-        }
-    }
-    cout<<"pixel noir "<<int(I1[230,180])<<endl;
+
     QuadTree<int>* test = imgToQTree(I1);
-    //Image<byte> test2=qTreeToImg(test);
     display(test);
-    cout<<getSize(test)<<endl;
 
     Window W1=openWindow(I1.height(),I1.width());
-    //display(test2);
-    int size=I1.width();
-    byte* tab = new byte[size*size];
-    //for(int i=0; i<size;i++){
-    //    for(int j=0; j<size;j++){
-    //        tab[i*size+j]=byte(0);
-    //    }
-    //}
-    fillTab(test, tab, 0, size-1, 0, size-1, size);
-    //putGreyImage(IntPoint2(0,0),tab,512,512);
-    afficheImgFromTree(test);
-    //int width, height;
-    //byte* image;
-    //loadGreyImage(fic1, image, width,height);
-    //putGreyImage(IntPoint2(0,0),image,width,height);
-    //delete image;
-    delete [] tab;
-    //display(res);
+
+
+    //afficheImgFromTree(test);
+    Image<byte> decoded = qTreeToImg(test);
+    display(decoded);
+
     delete test;
 
 
