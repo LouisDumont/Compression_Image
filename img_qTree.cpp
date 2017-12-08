@@ -13,12 +13,17 @@
 using namespace std;
 using namespace Imagine;
 
+QuadLeaf<int>* whiteLeaf = new QuadLeaf<int>(255);
+QuadLeaf<int>* blackLeaf = new QuadLeaf<int>(0);
+
+
 //---------------------------------------------------------------------//
 // Building a QuadTree<int> from a byte image
 //---------------------------------------------------------------------//
 
 // Recursive function that returns a pointer to the QuadTree representing a sub-image
 // Is not aimed at being called by the user
+// Used if protect_Leaves_From_Destruction is false
 QuadTree<int>* buildQTree
         (Image<byte> img, int xMin, int xMax, int yMin, int yMax){
     //Case of a pixel
@@ -51,11 +56,48 @@ QuadTree<int>* buildQTree
 }
 
 
+QuadTree<int>* buildQTreev2
+        (Image<byte> img, int xMin, int xMax, int yMin, int yMax){
+    //Case of a pixel
+    if (xMin==xMax && yMin==yMax) {
+        if (int(img[xMin*img.width()+yMin])==0){
+            return blackLeaf;
+        }
+        return whiteLeaf;
+    }
+
+    //Case of a wider region
+    int xMid = (xMin + xMax) / 2;
+    int yMid = (yMin + yMax) / 2;
+    //evaluating the sub-regions
+    QuadTree<int>* sonNW = buildQTreev2(img, xMin, xMid, yMin, yMid);
+    QuadTree<int>* sonNE = buildQTreev2(img, xMin, xMid, yMid+1, yMax);
+    QuadTree<int>* sonSE = buildQTreev2(img, xMid+1, xMax, yMid+1, yMax);
+    QuadTree<int>* sonSW = buildQTreev2(img, xMid+1, xMax, yMin, yMid);
+    bool condNorth = ((sonNW->isLeaf() && sonNE->isLeaf()) && (sonNW->value()==sonNE->value()));
+    bool condSouth = ((sonSW->isLeaf() && sonSE->isLeaf()) && (sonSW->value()==sonSE->value()));
+    if ((condNorth && condSouth) && (sonNW->value()==sonSW->value())){
+        //If all the sons are same-colored leafs
+        //Fusion of the leafs
+        int val = sonNE->value();
+        if (val==0){
+            return blackLeaf;
+        }
+        return whiteLeaf;
+    }
+    //general case
+    return new QuadNode<int>(sonNW, sonNE, sonSE, sonSW);
+}
+
+
 // Fancy function for the user
 // Return a pointer to the QuadTree representing an image
 QuadTree<int>* imgToQTree(Image<byte> img) {
     int width = img.width();
     int height = img.height();
+    if (QuadTree<int>::protect_leaves_from_destruction){
+             return buildQTreev2(img, 0, width-1, 0, height-1);
+    }
     return buildQTree(img, 0, width - 1, 0, height - 1);
 }
 

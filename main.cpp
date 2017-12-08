@@ -15,7 +15,12 @@ using namespace Imagine;
 
 
 
+
+
 int main() {
+    //Protecting the leafs, that will be used as global variables
+    QuadTree<int>::protect_leaves_from_destruction=true;
+
 
     //Loading and displaying the image
     Image<byte> I1;
@@ -36,6 +41,8 @@ int main() {
     display(decoded);
 
     delete test;
+    //delete whiteLeaf;
+    //delete blackLeaf;
 
 
     endGraphics();
