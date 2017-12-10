@@ -24,21 +24,21 @@ int main() {
 
     //Loading and displaying the image
     Image<byte> I1;
-    const char* fic1 = srcPath("horse_r.png");
+    const char* fic1 = srcPath("lena_r.png");
     //const char* fic1 = srcPath("lena_r.png");
     if(! load(I1, fic1)) {
         cout << "Probleme dans le chargement d'images" << endl;
         return 1;
     }
 
-    QuadTree<int>* test = imgToQTree(I1);
+    QuadTree<int>* test = imgToQTree(I1, false);
     display(test);
 
     Window W1=openWindow(I1.width(),I1.height());
 
 
     //afficheImgFromTree(test);
-    Image<byte> decoded = qTreeToImg(test, true);
+    Image<byte> decoded = qTreeToImg(test, false);
     display(decoded);
     cout<<nextPow2(256)<<endl;
 

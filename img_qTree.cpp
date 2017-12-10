@@ -15,6 +15,7 @@ using namespace Imagine;
 
 QuadLeaf<int>* whiteLeaf = new QuadLeaf<int>(255);
 QuadLeaf<int>* blackLeaf = new QuadLeaf<int>(0);
+int seuil = 30;
 
 int nextPow2(int dim){
     int res = 1;
@@ -29,22 +30,24 @@ int nextPow2(int dim){
 // Building a QuadTree<int> from a byte image
 //---------------------------------------------------------------------//
 
-// Recursive function that returns a pointer to the QuadTree representing a sub-image
+// Recursive function that returns a pointer to the QuadTree representing a square of the image
 // Is not aimed at being called by the user
-// Used if protect_Leaves_From_Destruction is false
+// Used if protect_Leaves_From_Destruction is false and isBlackAndWhite true
 QuadTree<int>* buildQTree
         (Image<byte> img, int xMin, int xMax, int yMin, int yMax){
     //Case of a pixel
     if (xMin==xMax && yMin==yMax) {
         int val;
+            // Cheking if the pixel is in the original image
         if (xMin<img.height() && yMin<img.width()){
             val = img[xMin*img.width()+yMin];
         }
+            // Otherwise a white value is returned
         else {val= 255;}
         return new QuadLeaf<int>(val);
     }
 
-    //Case of a wider region
+    //Case of a wider square
     int xMid = (xMin + xMax) / 2;
     int yMid = (yMin + yMax) / 2;
     //evaluating the sub-regions
@@ -52,31 +55,40 @@ QuadTree<int>* buildQTree
     QuadTree<int>* sonNE = buildQTree(img, xMin, xMid, yMid+1, yMax);
     QuadTree<int>* sonSE = buildQTree(img, xMid+1, xMax, yMid+1, yMax);
     QuadTree<int>* sonSW = buildQTree(img, xMid+1, xMax, yMin, yMid);
-    bool condNorth = ((sonNW->isLeaf() && sonNE->isLeaf()) && (sonNW->value()==sonNE->value()));
-    bool condSouth = ((sonSW->isLeaf() && sonSE->isLeaf()) && (sonSW->value()==sonSE->value()));
-    if ((condNorth && condSouth) && (sonNW->value()==sonSW->value())){
-        //If all the sons are same-colored leafs
-        //Fusion of the leafs
-        int val = sonNE->value();
-        delete sonNW;
-        delete sonNE;
-        delete sonSW;
-        delete sonSE;
-        return new QuadLeaf<int>(val);
+    bool condFeuilles = ((sonNW->isLeaf() && sonNE->isLeaf()) && (sonSW->isLeaf() && sonSE->isLeaf()));
+    if (condFeuilles){
+        //If all the sons are leafs
+        int Max = max(max(sonNW->value(),sonNE->value()),max(sonSE->value(), sonSW->value()));
+        int Min = min(min(sonNW->value(),sonNE->value()),min(sonSE->value(), sonSW->value()));
+        if (Max-Min<seuil) {
+            // If the color of the sons is similar, they merge
+            int val = (sonNW->value() + sonNE->value() + sonSE->value() + sonSW->value()) / 4;
+            delete sonNW;
+            delete sonNE;
+            delete sonSW;
+            delete sonSE;
+            return new QuadLeaf<int>(val);
+        }
     }
     //general case
     return new QuadNode<int>(sonNW, sonNE, sonSE, sonSW);
 }
 
-
+// Second function using shared leaves in the case of a black and white image
+// Is not aimed at being called directly by the user
 QuadTree<int>* buildQTreev2
         (Image<byte> img, int xMin, int xMax, int yMin, int yMax){
     //Case of a pixel
     if (xMin==xMax && yMin==yMax) {
-        if (int(img[xMin*img.width()+yMin])==0){
-            return blackLeaf;
+        // Cheking if the pixel is in the original image
+        if (xMin<img.height() && yMin<img.width()){
+            if (int(img[xMin*img.width()+yMin])==0){
+                return blackLeaf;
+            }
+            return whiteLeaf;
         }
-        return whiteLeaf;
+            // Otherwise a white value is returned
+        else {return whiteLeaf;}
     }
 
     //Case of a wider region
@@ -105,14 +117,16 @@ QuadTree<int>* buildQTreev2
 
 // Fancy function for the user
 // Return a pointer to the QuadTree representing an image
-QuadTree<int>* imgToQTree(Image<byte> img) {
+QuadTree<int>* imgToQTree(Image<byte> img, bool isBlackAndWhite) {
     int width = img.width();
     int height = img.height();
+    // Adapting the size to deal with a virtualy square image
     int size = nextPow2(max(width,height));
-
-    if (QuadTree<int>::protect_leaves_from_destruction){
+    // Case of a black and white image with use of shared leaves
+    if (QuadTree<int>::protect_leaves_from_destruction && isBlackAndWhite ){
              return buildQTreev2(img, 0, size-1, 0, size-1);
     }
+    // General case
     return buildQTree(img, 0, size - 1, 0, size - 1);
 }
 
@@ -120,12 +134,13 @@ QuadTree<int>* imgToQTree(Image<byte> img) {
 // Building back a byte Image from an int QuadTree
 //------------------------------------------------------------//
 
+// Fills the tab with the data of the square delimited by xMin, xMax, yMin, yMax
+// Is not aimed at being called directly by the user
 void fillTab
         (QuadTree<int>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size, bool isBlackAndWhite){
 
     // Case of a leaf
     if (tree->isLeaf()){
-        // Indicating by a grey square where the leaf is
         if (isBlackAndWhite) {
             // Indicating by a grey square where the leaf is
             for (int j = yMin; j <= yMax - 1; j++) {
@@ -143,6 +158,7 @@ void fillTab
                 }
             }
         }
+            // In the general case we do not want to indicate the squares
         else {
             for (int i = xMin; i <= xMax; i++) {
                 for (int j = yMin; j <= yMax; j++) {
@@ -171,7 +187,8 @@ int getSize(QuadTree<int>* tree){
     return max(max(2*s0,2*s1),max(2*s2,2*s3));
 }
 
-
+// General function returning an image from a QuadTree
+// The size of the image is determined by the depth of the deepest nod
 Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite){
     int size = getSize(tree);
     byte* tab = new byte[size*size];
@@ -180,6 +197,7 @@ Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite){
     return res;
 }
 
+// General function to display an image from a QuadTree
 void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite){
     int size = getSize(tree);
     byte* tab = new byte[size*size];

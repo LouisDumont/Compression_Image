@@ -18,13 +18,13 @@ QuadTree<int>* buildQTree
 QuadTree<int>* buildQTreev2
         (Imagine::Image<byte> img, int xMin, int xMax, int yMin, int yMax);
 
-QuadTree<int>* imgToQTree(Imagine::Image<byte> img);
+QuadTree<int>* imgToQTree(Imagine::Image<byte> img, bool isBlackAndWhite=true);
 
 void fillTab
         (QuadTree<int>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size, bool isBlackAndWhite);
 
 int getSize(QuadTree<int>* tree);
 
-Imagine::Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite = true);
+Imagine::Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite = false);
 
-void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite = true);
+void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite = false);
