@@ -10,7 +10,7 @@
 #include <Imagine/Graphics.h>
 #include <Imagine/Images.h>
 
-
+int nextPow2(int dim);
 
 QuadTree<int>* buildQTree
         (Imagine::Image<byte> img, int xMin, int xMax, int yMin, int yMax);
@@ -21,10 +21,10 @@ QuadTree<int>* buildQTreev2
 QuadTree<int>* imgToQTree(Imagine::Image<byte> img);
 
 void fillTab
-        (QuadTree<int>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size);
+        (QuadTree<int>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size, bool isBlackAndWhite);
 
 int getSize(QuadTree<int>* tree);
 
-Imagine::Image<byte> qTreeToImg(QuadTree<int>* tree);
+Imagine::Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite = true);
 
-void afficheImgFromTree(QuadTree<int>* tree);
+void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite = true);

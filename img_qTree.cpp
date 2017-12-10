@@ -16,6 +16,14 @@ using namespace Imagine;
 QuadLeaf<int>* whiteLeaf = new QuadLeaf<int>(255);
 QuadLeaf<int>* blackLeaf = new QuadLeaf<int>(0);
 
+int nextPow2(int dim){
+    int res = 1;
+    while (res<dim){
+        res = res*2;
+    }
+    return res;
+}
+
 
 //---------------------------------------------------------------------//
 // Building a QuadTree<int> from a byte image
@@ -28,7 +36,12 @@ QuadTree<int>* buildQTree
         (Image<byte> img, int xMin, int xMax, int yMin, int yMax){
     //Case of a pixel
     if (xMin==xMax && yMin==yMax) {
-        return new QuadLeaf<int>(int(img[xMin*img.width()+yMin]));
+        int val;
+        if (xMin<img.height() && yMin<img.width()){
+            val = img[xMin*img.width()+yMin];
+        }
+        else {val= 255;}
+        return new QuadLeaf<int>(val);
     }
 
     //Case of a wider region
@@ -95,10 +108,12 @@ QuadTree<int>* buildQTreev2
 QuadTree<int>* imgToQTree(Image<byte> img) {
     int width = img.width();
     int height = img.height();
+    int size = nextPow2(max(width,height));
+
     if (QuadTree<int>::protect_leaves_from_destruction){
-             return buildQTreev2(img, 0, width-1, 0, height-1);
+             return buildQTreev2(img, 0, size-1, 0, size-1);
     }
-    return buildQTree(img, 0, width - 1, 0, height - 1);
+    return buildQTree(img, 0, size - 1, 0, size - 1);
 }
 
 //------------------------------------------------------------//
@@ -106,21 +121,45 @@ QuadTree<int>* imgToQTree(Image<byte> img) {
 //------------------------------------------------------------//
 
 void fillTab
-        (QuadTree<int>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size){
+        (QuadTree<int>* tree, byte* tab, int xMin, int xMax, int yMin, int yMax, int size, bool isBlackAndWhite){
+
+    // Case of a leaf
     if (tree->isLeaf()){
-        for (int i=xMin; i<=xMax; i++){
-            for (int j =yMin; j<=yMax; j++){
-                tab[i*size+j]=byte(tree->value());
+        // Indicating by a grey square where the leaf is
+        if (isBlackAndWhite) {
+            // Indicating by a grey square where the leaf is
+            for (int j = yMin; j <= yMax - 1; j++) {
+                tab[xMin * size + j] = byte(100);
+                tab[xMax * size + j] = byte(100);
+            }
+            for (int i = xMin; i <= xMax; i++) {
+                tab[i * size + yMin] = byte(100);
+                tab[i * size + yMax] = byte(100);
+            }
+            // Filling the leaf by its color
+            for (int i = xMin + 1; i < xMax; i++) {
+                for (int j = yMin + 1; j < yMax; j++) {
+                    tab[i * size + j] = byte(tree->value());
+                }
+            }
+        }
+        else {
+            for (int i = xMin; i <= xMax; i++) {
+                for (int j = yMin; j <= yMax; j++) {
+                    tab[i * size + j] = byte(tree->value());
+                }
             }
         }
         return;
     }
+
+    // Case of a node
     int xMid = (xMin + xMax) / 2;
     int yMid = (yMin + yMax) / 2;
-    fillTab(tree->son(0), tab, xMin, xMid, yMin, yMid, size);
-    fillTab(tree->son(1), tab, xMin, xMid, yMid+1, yMax, size);
-    fillTab(tree->son(2), tab, xMid+1, xMax, yMid+1, yMax, size);
-    fillTab(tree->son(3), tab, xMid+1, xMax, yMin, yMid, size);
+    fillTab(tree->son(0), tab, xMin, xMid, yMin, yMid, size, isBlackAndWhite);
+    fillTab(tree->son(1), tab, xMin, xMid, yMid+1, yMax, size, isBlackAndWhite);
+    fillTab(tree->son(2), tab, xMid+1, xMax, yMid+1, yMax, size, isBlackAndWhite);
+    fillTab(tree->son(3), tab, xMid+1, xMax, yMin, yMid, size, isBlackAndWhite);
 }
 
 int getSize(QuadTree<int>* tree){
@@ -133,17 +172,17 @@ int getSize(QuadTree<int>* tree){
 }
 
 
-Image<byte> qTreeToImg(QuadTree<int>* tree){
+Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite){
     int size = getSize(tree);
     byte* tab = new byte[size*size];
-    fillTab(tree,tab, 0, size-1, 0, size-1, size);
+    fillTab(tree,tab, 0, size-1, 0, size-1, size, isBlackAndWhite);
     Image<byte> res(tab,size,size, true);
     return res;
 }
 
-void afficheImgFromTree(QuadTree<int>* tree){
+void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite){
     int size = getSize(tree);
     byte* tab = new byte[size*size];
-    fillTab(tree, tab, 0, size-1, 0, size-1, size);
+    fillTab(tree, tab, 0, size-1, 0, size-1, size, isBlackAndWhite);
     putGreyImage(IntPoint2(0,0),tab,size,size);
 }

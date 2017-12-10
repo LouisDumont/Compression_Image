@@ -19,12 +19,13 @@ using namespace Imagine;
 
 int main() {
     //Protecting the leafs, that will be used as global variables
-    QuadTree<int>::protect_leaves_from_destruction=true;
+    QuadTree<int>::protect_leaves_from_destruction=false;
 
 
     //Loading and displaying the image
     Image<byte> I1;
-    const char* fic1 = srcPath("running-horse-square.png");
+    const char* fic1 = srcPath("horse_r.png");
+    //const char* fic1 = srcPath("lena_r.png");
     if(! load(I1, fic1)) {
         cout << "Probleme dans le chargement d'images" << endl;
         return 1;
@@ -33,12 +34,13 @@ int main() {
     QuadTree<int>* test = imgToQTree(I1);
     display(test);
 
-    Window W1=openWindow(I1.height(),I1.width());
+    Window W1=openWindow(I1.width(),I1.height());
 
 
     //afficheImgFromTree(test);
-    Image<byte> decoded = qTreeToImg(test);
+    Image<byte> decoded = qTreeToImg(test, true);
     display(decoded);
+    cout<<nextPow2(256)<<endl;
 
     delete test;
     //delete whiteLeaf;
