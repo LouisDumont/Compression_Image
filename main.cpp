@@ -18,11 +18,11 @@ using namespace Imagine;
 
 
 int main() {
-    //Protecting the leafs, that will be used as global variables
+    //Protection the leafs, so that they can be used as global variables
     QuadTree<int>::protect_leaves_from_destruction=false;
 
 
-    //Loading and displaying the image
+    //Loading the image
     Image<byte> I1;
     const char* fic1 = srcPath("lena_r.png");
     //const char* fic1 = srcPath("lena_r.png");
@@ -30,17 +30,20 @@ int main() {
         cout << "Probleme dans le chargement d'images" << endl;
         return 1;
     }
+    Window W1=openWindow(I1.width(),I1.height());
 
+    //Tests the construction of the QuadTree
     QuadTree<int>* test = imgToQTree(I1, false);
     display(test);
 
-    Window W1=openWindow(I1.width(),I1.height());
-
-
-    //afficheImgFromTree(test);
+    //Tests the decoding of the QuadTree and the quality of the decoded image
     Image<byte> decoded = qTreeToImg(test, false);
     display(decoded);
-    cout<<nextPow2(256)<<endl;
+
+    //Tests the efficiency of the compression
+    int compressedSize = compt_MemorySize(test);
+    int unCompressedSize = I1.height()*I1.width();
+    cout<<"Compression ratio: "<<(float(compressedSize)/float(unCompressedSize))<<endl;
 
     delete test;
     //delete whiteLeaf;

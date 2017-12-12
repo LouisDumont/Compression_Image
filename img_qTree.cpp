@@ -198,9 +198,19 @@ Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite){
 }
 
 // General function to display an image from a QuadTree
-void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite){
+void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite) {
     int size = getSize(tree);
-    byte* tab = new byte[size*size];
-    fillTab(tree, tab, 0, size-1, 0, size-1, size, isBlackAndWhite);
-    putGreyImage(IntPoint2(0,0),tab,size,size);
+    byte *tab = new byte[size * size];
+    fillTab(tree, tab, 0, size - 1, 0, size - 1, size, isBlackAndWhite);
+    putGreyImage(IntPoint2(0, 0), tab, size, size);
+}
+
+// Returns the numbers of nodes and leaves of a tree to evaluate its size
+int compt_MemorySize(QuadTree<int>* tree){
+    if (tree->isLeaf()){return 1;}
+    int size0 = compt_MemorySize(tree->son(0));
+    int size1 = compt_MemorySize(tree->son(1));
+    int size2 = compt_MemorySize(tree->son(2));
+    int size3 = compt_MemorySize(tree->son(3));
+    return (size0+size1+size2+size3+1);
 }

@@ -28,3 +28,5 @@ int getSize(QuadTree<int>* tree);
 Imagine::Image<byte> qTreeToImg(QuadTree<int>* tree, bool isBlackAndWhite = false);
 
 void afficheImgFromTree(QuadTree<int>* tree, bool isBlackAndWhite = false);
+
+int compt_MemorySize(QuadTree<int>* tree);
